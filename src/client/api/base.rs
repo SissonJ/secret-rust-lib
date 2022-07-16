@@ -1,3 +1,3 @@
-struct BaseApi{
+pub struct BaseApi {
     c: String,
 }
