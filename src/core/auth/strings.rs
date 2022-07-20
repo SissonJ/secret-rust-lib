@@ -145,6 +145,5 @@ pub struct ValConsPubKey {
 
 fn is_valcons_pubkey(data: &str) -> bool {
     return check_prefix_and_length("secretvalconspub", data, 83)
-
 }
 
