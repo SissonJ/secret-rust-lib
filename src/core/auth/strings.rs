@@ -1,5 +1,7 @@
 use bech32::{self, FromBase32, ToBase32, Variant, u5};
 use bech32::Error as b32Err;
+use bech32::Error::*;
+use reqwest::Error as rqErr;
 use core::result::Result as Result;
 
 fn check_prefix_and_length(prefix: &str, data: &str, length: i32) -> bool {
@@ -124,3 +126,11 @@ fn is_valcons_pubkey(data: &str) -> bool {
     return check_prefix_and_length("secretvalconspub", data, 83)
 }
 
+
+fn to_reqwest_error(err: b32Err) -> rqErr {
+    match err {
+        InvalidChar(c) => {},
+        InvalidData(num) => {},
+        others => {},
+    }
+} 
