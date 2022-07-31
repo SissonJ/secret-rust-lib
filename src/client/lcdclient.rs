@@ -1,7 +1,14 @@
 use reqwest;
+use color_eyre::eyre::Result;
+use std::{error::Error, collections::HashMap};
+use super::{api::wasm::WasmAPI,lcdutils::LCDUtils};
+
+#[derive(Clone)]
 
 pub struct LCDClient {
     pub url: String,
+    //pub wasm: WasmAPI,
+    pub utils: LCDUtils,
     /*chain_id: Option<String>,
     gas_prices: Option<u32>, //Need to add Coins
     gas_adjustment: Option<u32>,
@@ -18,20 +25,17 @@ pub struct LCDClient {
 
 impl LCDClient {
     pub fn new(url: String) -> LCDClient {
-        LCDClient { url }
+        LCDClient { url: url.clone(), utils: LCDUtils::new(url) }
     }
 
     pub fn wallet() {
         println!("I will return a wallet one day");
     }
 
-    pub async fn get(&self, endpoint: String) -> String {
-        reqwest::get(format!("{}{}", self.url, endpoint))
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap()
+    pub async fn get(&self, endpoint: String) -> Result<HashMap<String,String>> {
+        let res = reqwest::get(format!("{}{}", self.url, endpoint))
+            .await?.json::<HashMap<String, String>>().await?;
+        Ok(res)
     }
 
     fn post(&self, endpoint: String, data: String, raw: bool) {
