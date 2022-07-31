@@ -1,8 +1,5 @@
 // TODO:: Every function should return a Result for custom error type
 use bech32::{self, FromBase32, ToBase32, Variant, u5};
-// use bech32::Error as b32Err;
-use bech32::Error::*;
-// use reqwest::Error as rqErr;
 use core::result::Result as Result;
 
 fn check_prefix_and_length(prefix: &str, data: &str, length: i32) -> bool {
