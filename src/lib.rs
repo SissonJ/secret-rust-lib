@@ -27,7 +27,7 @@ mod tests {
             client: LCDClient::new("https://api.scrt.network".to_string()),
         };
         print!(
-            "{}",
+            "{:?}",
             aw!(api.contract_hash("secret1qfql357amn448duf5gvp9gr48sxx9tsnhupu3d".to_string()))
         );
         assert!(false);
