@@ -24,8 +24,8 @@ pub struct LCDClient {
 }
 
 impl LCDClient {
-    pub fn new(url: String) -> LCDClient {
-        LCDClient { url: url.clone(), utils: LCDUtils::new(url) }
+    pub fn new(url: String, seed: Option<[u8; 32]>) -> LCDClient {
+        LCDClient { url: url.clone(), utils: LCDUtils::new(url, seed) }
     }
 
     pub fn wallet() {
