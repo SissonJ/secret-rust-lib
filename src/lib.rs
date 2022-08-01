@@ -7,6 +7,7 @@ pub mod util;
 mod tests {
     use std::collections::HashMap;
 
+    use crate::client::api::base::BaseApi;
     use crate::client::api::wasm::WasmAPI;
     use crate::client::lcdclient::LCDClient;
     use tokio_test;
@@ -27,6 +28,7 @@ mod tests {
     fn contract_hash() {
         let api = WasmAPI {
             client: LCDClient::new("https://api.scrt.network".to_string(), None),
+            api: BaseApi::new("https://api.scrt.network".to_string())
         };
         print!(
             "{:?}",

@@ -1,5 +1,6 @@
 use base64;
 use color_eyre::eyre::Result;
+use json::{object, JsonValue};
 use rand_core::{OsRng, RngCore};
 use super::api::base::BaseApi;
 use x25519_dalek::{StaticSecret, PublicKey};
@@ -79,5 +80,16 @@ impl LCDUtils {
         let mut cyphertext = siv.encrypt(&GenericArray::default(), plaintext.as_bytes()).unwrap();
         return_vec.append(&mut cyphertext);
         Ok(return_vec)
+    }
+
+    pub async fn decrypt(&self, cyphertext: [u8;32], nonce: [u8;32], tx_encryption_key: Option<[u8;32]> ) -> Result<Vec<u8>> {
+        let arr = if let Some(tx_encryption_key) = tx_encryption_key {
+            GenericArray::from(tx_encryption_key)
+        } else {
+            GenericArray::from(self.get_tx_encryption_key(nonce).await?)
+        };
+        let siv = Aes128SivAead::new(&arr);
+        let plaintext = siv.decrypt(&GenericArray::default(), cyphertext.as_ref()).unwrap();
+        Ok(plaintext)
     }
 }
