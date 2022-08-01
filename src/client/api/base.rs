@@ -1,4 +1,5 @@
 use color_eyre::eyre::Result;
+use json::JsonValue;
 use std::collections::HashMap;
 
 #[derive(Clone)]
@@ -11,10 +12,11 @@ impl BaseApi {
         BaseApi { url }
     }
 
-    pub async fn get(&self, endpoint: String) -> Result<HashMap<String,String>> {
+    pub async fn get(&self, endpoint: String) -> Result<JsonValue> {
         let res = reqwest::get(format!("{}{}", self.url, endpoint))
-            .await?.json::<HashMap<String, String>>().await?;
-        Ok(res)
+            .await?.text().await?;
+        println!("{:?}", res);
+        Ok(json::parse(&res)?)
     }
 
     fn post(&self, endpoint: String, data: String, raw: bool) {

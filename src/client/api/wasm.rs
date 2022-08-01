@@ -24,7 +24,7 @@ impl WasmAPI {
         let contract_code_hash = if let Some(hash) = self.clone().contract_hash(contract_address.clone()).await?.get("result"){
             hash.clone()
         }else{String::from("")};
-        let encrypted = self.client.utils.encrypt(contract_code_hash, query_str).await?;
+        let encrypted = self.client.utils.encrypt(contract_code_hash, query_str, None).await?;
         Ok(HashMap::new())
     }
 }
