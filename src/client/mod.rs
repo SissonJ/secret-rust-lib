@@ -22,6 +22,14 @@ mod tests {
     }
 
     #[test]
+    pub fn generate_tx_encryption_key_from_seed() {
+        let seed = [227, 97, 56, 56, 47, 57, 217, 64, 113, 225, 93, 25, 66, 70, 198, 0, 160, 41, 0, 93, 35, 222, 139, 78, 141, 23, 21, 129, 25, 189, 220, 241];
+        let client = LCDUtils::new("https://api.scrt.network".to_string(), Some([212, 136, 255, 246, 160, 167, 202, 224, 126, 102, 92, 236, 165, 223, 158, 125, 2, 22, 145, 224, 66, 170, 95, 147, 150, 59, 80, 50, 77, 98, 229, 152]));
+        println!("tx_ecnryption_key: {:?}", aw!(client.get_tx_encryption_key(seed)));
+        assert!(false);
+    }
+
+    #[test]
     pub fn contract_query() {
         let mut client = WasmAPI{
             client: LCDClient::new("https://api.scrt.network".to_string(), None),

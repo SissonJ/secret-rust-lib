@@ -21,5 +21,6 @@ sha2 = { version = "0.10", default-features = false }
 hex-literal = "0.2.2"
 aes-siv = "0.7.0"
 json = "0.12.4"
+hex = "0.4"
 
 [dev-dependencies]
