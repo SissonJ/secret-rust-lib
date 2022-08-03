@@ -61,6 +61,7 @@ impl LCDUtils {
         let hk = Hkdf::<Sha256>::new(Some(&salt[..]), &master_secret);
         let mut okm = [0u8; 32];
         hk.expand(&[], &mut okm).unwrap(); // get rid of this one too
+        println!("okm: {:?}", okm);
         Ok(okm)
     }
     
@@ -77,6 +78,7 @@ impl LCDUtils {
         
         let siv = Aes128SivAead::new(&arr);
         let plaintext = contract_code_hash + &msg;
+        println!("plaintext: {:?}", plaintext.as_bytes());
         let mut cyphertext = siv.encrypt(&GenericArray::default(), plaintext.as_bytes()).unwrap();
         return_vec.append(&mut cyphertext);
         Ok(return_vec)
