@@ -18,6 +18,7 @@ impl BaseApi {
         if raw == Some(true) {
             return Ok(json::parse(&res)?);
         }
+        println!("{}", res);
         Ok(json::parse(&res)?["result"].clone())
     }
 

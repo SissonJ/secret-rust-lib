@@ -31,7 +31,7 @@ impl WasmAPI {
     }
 
     pub async fn contract_info(&self, contract_address: String) -> Result<JsonValue> {
-        Ok(self.api.get(format!("/wasm/contracts/{}", contract_address), None).await?)
+        Ok(self.api.get(format!("/wasm/contract/{}", contract_address), None).await?)
     }
 
     pub async fn contract_hash_by_code_id(&self, code_id: i32) -> Result<JsonValue> {
