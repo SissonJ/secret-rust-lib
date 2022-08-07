@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use crate::client::lcdclient::LCDClient;
 use color_eyre::eyre::Result;
 use hex;
-use json::JsonValue;
+use json::{JsonValue, object};
 use super::base::BaseApi;
 
 #[derive(Clone)]
@@ -23,7 +23,7 @@ impl WasmAPI {
         contract_address: String, 
         query: JsonValue, 
         height: Option<i32>
-    ) -> Result<HashMap<String, String>> {
+    ) -> Result<JsonValue> {
         let query_str = json::stringify(query);
         let contract_code_hash = if let Some(hash) = self.clone().contract_hash(contract_address.clone()).await?.get("result"){
             hash.clone()
@@ -37,7 +37,8 @@ impl WasmAPI {
             format!("/wasm/contract/{}/query/{}?encoding=hex&height={}", contract_address, encoded, 0)
         };
         let query_res = self.api.get(query_path).await?;
-        println!("{}", query_res);
-        Ok(HashMap::new())
+        let encoded_result = base64::decode(query_res["result"]["smart"].to_string())?;
+        let decrypted = self.client.utils.decrypt(encoded_result, nonce, None).await?;
+        Ok(json::parse(&String::from_utf8(base64::decode(decrypted)?)?)?)
     }
 }

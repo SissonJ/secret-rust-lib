@@ -1,6 +1,5 @@
 use base64;
 use color_eyre::eyre::Result;
-use json::{object, JsonValue};
 use rand_core::{OsRng, RngCore};
 use super::api::base::BaseApi;
 use x25519_dalek::{StaticSecret, PublicKey};
@@ -8,8 +7,8 @@ use sha2::Sha256;
 use hkdf::Hkdf;
 use hex_literal::hex;
 use aes_siv::{
-    aead::{Aead, KeyInit, generic_array::GenericArray},
-    Aes256SivAead, Nonce, Aes128SivAead // Or `Aes128SivAead`
+    aead::{KeyInit, generic_array::GenericArray},
+    siv::Aes128Siv,
 };
 
 #[derive(Clone)]
@@ -61,7 +60,6 @@ impl LCDUtils {
         let hk = Hkdf::<Sha256>::new(Some(&salt[..]), &master_secret);
         let mut okm = [0u8; 32];
         hk.expand(&[], &mut okm).unwrap(); // get rid of this one too
-        println!("okm: {:?}", okm);
         Ok(okm)
     }
     
@@ -73,25 +71,24 @@ impl LCDUtils {
         };
         let mut return_vec = [seed, self.pubkey.as_bytes().clone()].concat();
         let tx_encryption_key = self.get_tx_encryption_key(seed).await?;
-        
         let arr = GenericArray::from(tx_encryption_key);
         
-        let siv = Aes128SivAead::new(&arr);
-        let plaintext = contract_code_hash + &msg;
-        println!("plaintext: {:?}", plaintext.as_bytes());
-        let mut cyphertext = siv.encrypt(&GenericArray::default(), plaintext.as_bytes()).unwrap();
+        //let siv = Aes128SivAead::new(&arr);
+        let mut siv = Aes128Siv::new(&arr);
+        let plaintext = contract_code_hash.clone() + &msg;
+        let mut cyphertext = siv.encrypt(&[&[0u8;0]], plaintext.as_bytes()).unwrap();
         return_vec.append(&mut cyphertext);
         Ok(return_vec)
     }
 
-    pub async fn decrypt(&self, cyphertext: [u8;32], nonce: [u8;32], tx_encryption_key: Option<[u8;32]> ) -> Result<Vec<u8>> {
+    pub async fn decrypt(&self, cyphertext: Vec<u8>, nonce: [u8;32], tx_encryption_key: Option<[u8;32]> ) -> Result<Vec<u8>> {
         let arr = if let Some(tx_encryption_key) = tx_encryption_key {
             GenericArray::from(tx_encryption_key)
         } else {
             GenericArray::from(self.get_tx_encryption_key(nonce).await?)
         };
-        let siv = Aes128SivAead::new(&arr);
-        let plaintext = siv.decrypt(&GenericArray::default(), cyphertext.as_ref()).unwrap();
+        let mut siv = Aes128Siv::new(&arr);
+        let plaintext = siv.decrypt(&[&[0u8;0]], cyphertext.as_ref()).unwrap();
         Ok(plaintext)
     }
 }
