@@ -14,7 +14,7 @@ use aes_siv::{
 #[derive(Clone)]
 
 pub struct LCDUtils {
-    pub seed: u32,
+    pub seed: [u8; 32],
     r: OsRng,
     privkey: StaticSecret,
     pub pubkey: PublicKey,
@@ -22,31 +22,34 @@ pub struct LCDUtils {
 }
 
 impl LCDUtils {
-    pub fn new(url: String, seed: Option<[u8; 32]>) -> LCDUtils {
+    pub fn new(api: BaseApi, seed: Option<[u8; 32]>) -> LCDUtils {
         let r = OsRng{};
+        let key_seed;
         let privkey = if let Some(seed) = seed {
+            key_seed = seed;
             StaticSecret::from(seed)
         }else{
+            key_seed = [0u8; 32]; //TODO
             StaticSecret::new(r)
         };
         let pubkey = PublicKey::from(&privkey.clone());
         LCDUtils { 
-            seed: 0, 
+            seed: key_seed, 
             r,
             privkey, 
             pubkey, 
-            api: BaseApi::new(url),
+            api,
         }
     }
 
-    pub fn generate_new_seed(&mut self) -> [u8; 32] {
+    pub fn generate_new_seed(&self) -> [u8; 32] {
         let mut seed = [0u8; 32];
-        self.r.fill_bytes(&mut seed);
+        self.clone().r.fill_bytes(&mut seed);
         seed
     }
 
     pub async fn get_consensus_io_pubkey(&self) -> Result<[u8;32]> {
-        let io_exch_pubkey = self.api.get(String::from("/reg/tx-key")).await?["result"]["TxKey"].clone();
+        let io_exch_pubkey = self.api.get(String::from("/reg/tx-key"), None).await?["TxKey"].clone();
         let consensus_io_pubkey = base64::decode(&format!("{}",io_exch_pubkey))?;
         Ok(consensus_io_pubkey.try_into().unwrap()) //find out how to get rid of this 
     }
@@ -63,7 +66,7 @@ impl LCDUtils {
         Ok(okm)
     }
     
-    pub async fn encrypt(&mut self, contract_code_hash: String, msg: String, nonce: Option<[u8;32]>) -> Result<Vec<u8>> {
+    pub async fn encrypt(&self, contract_code_hash: String, msg: String, nonce: Option<[u8;32]>) -> Result<Vec<u8>> {
         let seed = if let Some(nonce) = nonce{
             nonce
         }else{
@@ -73,7 +76,6 @@ impl LCDUtils {
         let tx_encryption_key = self.get_tx_encryption_key(seed).await?;
         let arr = GenericArray::from(tx_encryption_key);
         
-        //let siv = Aes128SivAead::new(&arr);
         let mut siv = Aes128Siv::new(&arr);
         let plaintext = contract_code_hash.clone() + &msg;
         let mut cyphertext = siv.encrypt(&[&[0u8;0]], plaintext.as_bytes()).unwrap();
@@ -90,5 +92,10 @@ impl LCDUtils {
         let mut siv = Aes128Siv::new(&arr);
         let plaintext = siv.decrypt(&[&[0u8;0]], cyphertext.as_ref()).unwrap();
         Ok(plaintext)
+    }
+
+    pub async fn decrypt_data_field(&self, data_field: String, nonces: Vec<[u8 ; 32]>) -> Result<Vec<u8>> { //TODO!
+        let wasm_output_data_cipher_bz = data_field.as_bytes();
+        Ok(vec![])
     }
 }
