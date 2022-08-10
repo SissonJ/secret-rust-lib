@@ -1,11 +1,14 @@
-use json::{JsonValue, object};
 use crate::core::auth::coins::Coins;
+use json::{object, JsonValue};
+use serde::{Deserialize, Serialize};
 
-pub enum WasmMsg{
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum WasmMsg {
     MsgStoreCode,
     MsgMigrateCode,
     MsgInstantiateContract,
-    MsgExecuteContract{
+    MsgExecuteContract {
         sender: String,
         contract: String,
         msg: String,
@@ -17,20 +20,20 @@ pub enum WasmMsg{
 }
 
 impl WasmMsg {
-    pub fn to_data(self)->JsonValue{
+    pub fn to_data(self) -> JsonValue {
         match self {
-            WasmMsg::MsgExecuteContract { 
-                sender, 
-                contract, 
-                msg, 
-                sent_funds 
+            WasmMsg::MsgExecuteContract {
+                sender,
+                contract,
+                msg,
+                sent_funds,
             } => object!(
                 "sender": sender,
                 "contract": contract,
                 "msg": msg,
                 "sent_funds": sent_funds.to_string(),
             ),
-            _ => object!()
+            _ => object!(),
         }
     }
 }
