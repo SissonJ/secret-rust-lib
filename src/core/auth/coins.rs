@@ -10,6 +10,9 @@ pub struct Coins {
 }
 
 impl Coins {
+    pub fn default() -> Coins {
+        Coins{ coins: vec![] }
+    }
     pub fn to_data(&self) -> Vec<JsonValue> {
         let mut coin_vec = vec![];
         for coin in self.coins.clone() {

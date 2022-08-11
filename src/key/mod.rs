@@ -71,11 +71,40 @@ mod test {
             msgs: vec![],
             memo: "".to_string(),
         };
-        println!("{}", tx.to_data().dump());
         let sig = key.create_signature(tx);
         assert_eq!(
-            sig.signature,
-                "hVYXSc4ZvRF7kN8cM1NgHoTIqcgnD/P+/djgMBQty38eQnU0P5N7Aux9OX/0hubURgpHBANO9azLqpHNPl67kA==",
+            sig.to_data().dump(),
+            r#"{"pub_key":{"type":"tendermint/PubKeySecp256k1","value":"A7E9oddziL45QKPrSpfz/zLsb3oUdBy0lqL2yggJ2c8F"},"signature":"hVYXSc4ZvRF7kN8cM1NgHoTIqcgnD/P+/djgMBQty38eQnU0P5N7Aux9OX/0hubURgpHBANO9azLqpHNPl67kA=="}"#,
         );
+    }
+
+    #[test]
+    pub fn sign_tx() {
+        let key = Key {
+            raw_key: RawKey::new([
+                93, 148, 94, 235, 139, 187, 191, 197, 127, 54, 210, 113, 209, 160, 73, 132, 44, 26,
+                39, 166, 129, 226, 178, 176, 185, 182, 24, 89, 11, 244, 21, 130,
+            ]),
+        };
+        let tx = StdSignMsg {
+            chain_id: "secret_4".to_string(),
+            account_number: 1,
+            fee: StdFee {
+                amount: Coins {
+                    coins: vec![Coin {
+                        denom: "scrt".to_string(),
+                        amount: 1000,
+                    }],
+                },
+                gas: 100,
+            },
+            sequence: 1,
+            msgs: vec![],
+            memo: "".to_string(),
+        };
+        assert_eq!(
+            r#"{"type":"cosmos-sdk/StdTx","value":{"fee":{"amount":[{"amount":"1000","denom":"scrt"}],"gas":"100"},"memo":"","msg":[],"signatures":[{"pub_key":{"type":"tendermint/PubKeySecp256k1","value":"A7E9oddziL45QKPrSpfz/zLsb3oUdBy0lqL2yggJ2c8F"},"signature":"hVYXSc4ZvRF7kN8cM1NgHoTIqcgnD/P+/djgMBQty38eQnU0P5N7Aux9OX/0hubURgpHBANO9azLqpHNPl67kA=="}]}}"#,
+            key.sign_tx(tx).to_data().dump()
+        )
     }
 }

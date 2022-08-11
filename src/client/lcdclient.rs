@@ -1,10 +1,11 @@
-use super::{api::{wasm::WasmAPI, base::BaseApi},lcdutils::LCDUtils};
+use super::{api::{wasm::WasmAPI, tx::TxApi, base::BaseApi},lcdutils::LCDUtils};
 
 #[derive(Clone)]
 
-pub struct LCDClient {
-    pub wasm: WasmAPI,
-    pub utils: LCDUtils,
+pub struct LCDClient<'b> {
+    pub wasm: WasmAPI<'b>,
+    pub utils: LCDUtils<'b>,
+    pub tx: TxApi<'b>,
     /*chain_id: Option<String>,
     gas_prices: Option<u32>, //Need to add Coins
     gas_adjustment: Option<u32>,
@@ -19,13 +20,12 @@ pub struct LCDClient {
     tx: Option<u32>, // ^*/
 }
 
-impl LCDClient {
-    pub fn new(url: String, seed: Option<[u8; 32]>) -> LCDClient {
-        let api = BaseApi::new(url);
-        let utils = LCDUtils::new(api.clone(), seed);
+impl<'b> LCDClient<'b> {
+    pub fn new(api: &'b BaseApi, seed: Option<[u8; 32]>) -> LCDClient<'b> {
         LCDClient {
-            wasm: WasmAPI::new(api, utils.clone()), 
-            utils 
+            wasm: WasmAPI::new(api, LCDUtils::new(api, seed)), 
+            utils: LCDUtils::new(api, seed), 
+            tx: TxApi::new(api)
         }
     }
 

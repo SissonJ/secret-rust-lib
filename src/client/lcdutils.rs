@@ -13,16 +13,16 @@ use aes_siv::{
 
 #[derive(Clone)]
 
-pub struct LCDUtils {
+pub struct LCDUtils<'a> {
     pub seed: [u8; 32],
     r: OsRng,
     privkey: StaticSecret,
     pub pubkey: PublicKey,
-    api: BaseApi,
+    api: &'a BaseApi,
 }
 
-impl LCDUtils {
-    pub fn new(api: BaseApi, seed: Option<[u8; 32]>) -> LCDUtils {
+impl<'a> LCDUtils<'a> {
+    pub fn new(api: &'a BaseApi, seed: Option<[u8; 32]>) -> LCDUtils {
         let r = OsRng{};
         let key_seed;
         let privkey = if let Some(seed) = seed {

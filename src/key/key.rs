@@ -1,7 +1,7 @@
 use super::raw::RawKey;
 use crate::core::auth::data::{
     publickey::{PubKeyType, PublicKey},
-    tx::{StdSignMsg, StdSignature},
+    tx::{StdSignMsg, StdSignature, StdTx},
 };
 
 pub struct Key {
@@ -10,11 +10,6 @@ pub struct Key {
 
 impl Key {
     pub fn create_signature(&self, tx: StdSignMsg) -> StdSignature {
-        println!("{:?}", tx.to_data().dump().as_bytes().to_vec());
-        assert_eq!(
-            r#"{"account_number":"1","chain_id":"secret_4","fee":{"amount":[{"amount":"1000","denom":"scrt"}],"gas":"100"},"memo":"","msgs":[],"sequence":"1"}"#,
-            tx.to_data().dump()
-        );
         let sig = self.raw_key.sign(tx.to_data().dump().as_bytes().to_vec());
         StdSignature {
             signature: base64::encode(sig),
@@ -22,6 +17,15 @@ impl Key {
                 key_type: PubKeyType::Simple,
                 value: base64::encode(self.raw_key.public_key.serialize()),
             },
+        }
+    }
+
+    pub fn sign_tx(&self, tx: StdSignMsg) -> StdTx {
+        StdTx{
+            signatures: vec![self.create_signature(tx.clone())],
+            memo: tx.memo,
+            fee: tx.fee,
+            msg: tx.msgs,
         }
     }
 }
