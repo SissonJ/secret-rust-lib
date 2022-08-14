@@ -13,5 +13,6 @@ tokio-test = "*"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 bech32 = "0.9.0"
 regex = "1" # regular expressions support
+lazy_static = "1.4.0"
 
 [dev-dependencies]
