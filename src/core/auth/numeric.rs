@@ -1,5 +1,7 @@
+use std::ops::{ Add, Sub, Mul, Div };
 use regex::*;
 use lazy_static::lazy_static;
+use num_bigint::BigInt;
 
 /*
 The goal of this is to be able to use the Dec type with normal operators. 
@@ -16,29 +18,45 @@ pub union Number {
     float: f32,
 }
 
-fn to_number
-pub fn convert_to_dec_bignum(arg: Number) -> i64 {
+pub fn convert_to_dec_bignum(arg: Number) -> Option<BigInt> {
     unsafe {
         match arg {
-          Number { str } => {
-            lazy_static! { 
-                static ref RE: Regex = Regex::new(r"^(\-)?(\d+)(\.(\d+))?\Z").unwrap();
-            }
-            let caps = RE.captures(str);
-                
-            return 1_i64 // TODO: Needs fix
-
-
-          }  
-          Number { int } => { (int * dec_one) as i64 } 
-          Number { float } => { float as i64 } // TODO: What is actually supposed to happen here
-
+          Number { str } => { return from_str(str) }, 
+          Number { int } => {  return Some(BigInt::from(int * dec_one)) } 
+          Number { float } => { 
+            let float_string = float.to_string();
+            return from_str(&float_string);
+          } 
         }
+    }
+    unsafe fn from_str(arg: &str) -> Option<BigInt> {
+        // TODO: better expect messages
+        lazy_static! { 
+            static ref RE: Regex = Regex::new(r"^(\-)?(\d+)(\.(\d+))?\Z").unwrap();
+        }
+        let parts = RE.captures(arg)?;
+        let result: i32 = parts.get(2)?
+            .as_str()
+            .trim()
+            .parse::<i32>()
+            .expect("Invalid String: NAN") * dec_one;
+        if let Some(str) = parts.get(3) {
+            let fraction: i32 = parts.get(4)?
+                .as_str()
+                .trim()
+                .parse::<i32>()
+                .expect("Invalid String: NAN");
+            result += fraction;
+        }
+        if let Some(str) = parts.get(1) {
+            result *= -1;
+        }
+        return Some(BigInt::from(result));
     }
 }
 #[derive(Default)]
 pub struct Dec {
-    i: i64, 
+    i: BigInt, 
 
 }
 
@@ -52,7 +70,7 @@ impl Dec {
     */
     pub fn new(arg: Number) -> Dec {
         Dec {
-            i: convert_to_dec_bignum(arg),
+            i: convert_to_dec_bignum(arg).unwrap(),
         }
     }
 
@@ -63,5 +81,23 @@ impl Dec {
     pub fn one() -> Dec { 
         return Dec::new(Number { int: 1,}) ;
     }
+
+
+    // traits to implement: Add, Sub, Mul, Div
+}
+
+impl Add for Dec { 
+
+}
+
+impl Sub for Dec { 
+
+}
+
+impl Mul for Dec { 
+
+}
+
+impl Div for Dec { 
 
 }
