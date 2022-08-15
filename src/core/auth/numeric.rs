@@ -54,6 +54,32 @@ pub fn convert_to_dec_bignum(arg: Number) -> Option<BigInt> {
         return Some(BigInt::from(result));
     }
 }
+
+fn chop_precision_and_round(d: i32) -> i32 {
+    if d < 0 {
+        return -1 * chop_precision_and_round(d * -1);
+    } 
+
+    let quo = d / dec_one;
+    let rem = d % dec_one;
+
+    if rem == 0 {
+        return quo;
+    }
+
+    if rem < dec_one / 2 {
+        return quo;
+    } else if rem > dec_one / 2 {
+        return quo + 1;
+    } else {
+        if quo % 2 == 0 {
+            return quo;
+        }
+        return quo;
+    }
+}
+
+
 #[derive(Default)]
 pub struct Dec {
     i: BigInt, 
