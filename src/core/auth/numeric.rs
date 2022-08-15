@@ -8,9 +8,8 @@ The goal of this is to be able to use the Dec type with normal operators.
 TODO: Figure out how to do that, what do the rust operators call
 */
 
-const dec_num_digits: i32 = 18;
-const dec_one: i32 = 10_i32.pow(18_u32);
-// const dec_pattern: regex::Regex = regex::Regex::new(r"^(\-)?(\d+)(\.(\d+))?\Z").unwrap();
+const DEC_NUM_DIGITS: i32 = 18;
+const DEC_ONE: i32 = 10_i32.pow(18_u32);
 
 pub union Number {
     str: &'static str,
@@ -22,15 +21,14 @@ pub fn convert_to_dec_bignum(arg: Number) -> Option<BigInt> {
     unsafe {
         match arg {
           Number { str } => { return from_str(str) }, 
-          Number { int } => {  return Some(BigInt::from(int * dec_one)) } 
+          Number { int } => {  return Some(BigInt::from(int * DEC_ONE)) } 
           Number { float } => { 
             let float_string = float.to_string();
             return from_str(&float_string);
           } 
         }
     }
-    unsafe fn from_str(arg: &str) -> Option<BigInt> {
-        // TODO: better expect messages
+    fn from_str(arg: &str) -> Option<BigInt> {
         lazy_static! { 
             static ref RE: Regex = Regex::new(r"^(\-)?(\d+)(\.(\d+))?\Z").unwrap();
         }
@@ -39,11 +37,11 @@ pub fn convert_to_dec_bignum(arg: Number) -> Option<BigInt> {
             .as_str()
             .trim()
             .parse::<i32>()
-            .expect("Invalid String: NAN") * dec_one;
+            .expect("Invalid String: NAN") * DEC_ONE;
         if let Some(str) = parts.get(3) {
             let fraction: i32 = parts.get(4)?
                 .as_str()
-                .trim()
+                .trim() // TODO: slice
                 .parse::<i32>()
                 .expect("Invalid String: NAN");
             result += fraction;
@@ -60,16 +58,16 @@ fn chop_precision_and_round(d: i32) -> i32 {
         return -1 * chop_precision_and_round(d * -1);
     } 
 
-    let quo = d / dec_one;
-    let rem = d % dec_one;
+    let quo = d / DEC_ONE;
+    let rem = d % DEC_ONE;
 
     if rem == 0 {
         return quo;
     }
 
-    if rem < dec_one / 2 {
+    if rem < DEC_ONE / 2 {
         return quo;
-    } else if rem > dec_one / 2 {
+    } else if rem > DEC_ONE / 2 {
         return quo + 1;
     } else {
         if quo % 2 == 0 {
@@ -80,10 +78,9 @@ fn chop_precision_and_round(d: i32) -> i32 {
 }
 
 
-#[derive(Default)]
+#[derive(Default)] // Defaults i to 0 (https://docs.rs/num-bigint/latest/src/num_bigint/bigint.rs.html#132-137)
 pub struct Dec {
     i: BigInt, 
-
 }
 
 //TODO: JSONSerializable
