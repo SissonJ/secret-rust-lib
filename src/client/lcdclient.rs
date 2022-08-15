@@ -1,7 +1,10 @@
-use reqwest;
+use super::{api::{wasm::WasmAPI, base::BaseApi},lcdutils::LCDUtils};
+
+#[derive(Clone)]
 
 pub struct LCDClient {
-    pub url: String,
+    pub wasm: WasmAPI,
+    pub utils: LCDUtils,
     /*chain_id: Option<String>,
     gas_prices: Option<u32>, //Need to add Coins
     gas_adjustment: Option<u32>,
@@ -17,25 +20,16 @@ pub struct LCDClient {
 }
 
 impl LCDClient {
-    pub fn new(url: String) -> LCDClient {
-        LCDClient { url }
+    pub fn new(url: String, seed: Option<[u8; 32]>) -> LCDClient {
+        let api = BaseApi::new(url);
+        let utils = LCDUtils::new(api.clone(), seed);
+        LCDClient {
+            wasm: WasmAPI::new(api, utils.clone()), 
+            utils 
+        }
     }
 
     pub fn wallet() {
         println!("I will return a wallet one day");
-    }
-
-    pub async fn get(&self, endpoint: String) -> String {
-        reqwest::get(format!("{}{}", self.url, endpoint))
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap()
-    }
-
-    fn post(&self, endpoint: String, data: String, raw: bool) {
-        let client = reqwest::Client::new();
-        client.post(self.url.clone());
     }
 }
