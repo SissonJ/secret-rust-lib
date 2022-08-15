@@ -11,22 +11,20 @@ TODO: Figure out how to do that, what do the rust operators call
 const DEC_NUM_DIGITS: i32 = 18;
 const DEC_ONE: i32 = 10_i32.pow(18_u32);
 
-pub union Number {
-    str: &'static str,
-    int: i32,
-    float: f32,
+pub enum Number {
+    Str(&'static str),
+    Int(i32),
+    Float(f32),
 }
 
 pub fn convert_to_dec_bignum(arg: Number) -> Option<BigInt> {
-    unsafe {
-        match arg {
-          Number { str } => { return from_str(str) }, 
-          Number { int } => {  return Some(BigInt::from(int * DEC_ONE)) } 
-          Number { float } => { 
-            let float_string = float.to_string();
-            return from_str(&float_string);
-          } 
-        }
+    match arg {
+        Number::Str(str) => { return from_str(str) }, 
+        Number::Int(int) => {  return Some(BigInt::from(int * DEC_ONE)) } 
+        Number::Float(float) => { 
+        let float_string = float.to_string();
+        return from_str(&float_string);
+        } 
     }
     fn from_str(arg: &str) -> Option<BigInt> {
         lazy_static! { 
