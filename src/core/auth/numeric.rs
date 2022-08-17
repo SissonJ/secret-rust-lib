@@ -47,7 +47,7 @@ pub fn convert_to_dec_bignum(arg: Number) -> Result<i128, SecretError> {
             .trim()
             .parse::<i128>()
             .expect("Invalid String: NAN") * DEC_ONE;
-        if let Some(str) = parts.get(3) {
+        if let Some(_) = parts.get(3) {
             let fraction: i128 = parts.get(4)?
                 .as_str()
                 .trim() // TODO: slice
@@ -55,7 +55,7 @@ pub fn convert_to_dec_bignum(arg: Number) -> Result<i128, SecretError> {
                 .expect("Invalid String: NAN");
             result += fraction;
         }
-        if let Some(str) = parts.get(1) {
+        if let Some(_) = parts.get(1) {
             result *= -1;
         }
         return Some(result as i128);
@@ -224,5 +224,6 @@ mod tests {
     #[test]
     fn simple() {
         assert_eq!(Dec { i: super::convert_to_dec_bignum(Number::Int(2)).unwrap() }.i, Dec::from(Number::Int(2)).unwrap().i);
+        assert_eq!(Dec::from(Number::Int(5)).unwrap().i, (Dec::from(Number::Int(2)).unwrap() + Dec::from(Number::Int(3)).unwrap()).i);
     }
 }
