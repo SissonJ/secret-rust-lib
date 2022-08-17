@@ -2,6 +2,7 @@ use std::ops::{ Add, Sub, Mul, Div };
 use regex::*;
 use lazy_static::lazy_static;
 use num_bigint::BigInt;
+use crate::core::errors::SecretError;
 
 /*
 The goal of this is to be able to use the Dec type with normal operators. 
@@ -17,15 +18,25 @@ pub enum Number {
     Float(f32),
 }
 
-pub fn convert_to_dec_bignum(arg: Number) -> Option<BigInt> {
+pub fn convert_to_dec_bignum(arg: Number) -> Result<BigInt, SecretError> {
+    // TODO: Better Error messages
     match arg {
-        Number::Str(str) => { return from_str(str) }, 
-        Number::Int(int) => {  return Some(BigInt::from(int * DEC_ONE)) } 
+        Number::Str(str) => { 
+            return match from_str(str) {
+                Some(BigInt) => Ok(BigInt),
+                None => Err(SecretError::Error("Not found".to_string()))
+            }
+        }, 
         Number::Float(float) => { 
-        let float_string = float.to_string();
-        return from_str(&float_string);
+            let float_string = float.to_string();
+            return match from_str(&float_string) {
+                Some(BigInt) => Ok(BigInt),
+                None => Err(SecretError::Error("Not found".to_string()))
+            }
         } 
+        Number::Int(int) => {  return Ok(BigInt::from(int * DEC_ONE)) } 
     }
+
     fn from_str(arg: &str) -> Option<BigInt> {
         lazy_static! { 
             static ref RE: Regex = Regex::new(r"^(\-)?(\d+)(\.(\d+))?\Z").unwrap();
