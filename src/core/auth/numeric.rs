@@ -42,7 +42,7 @@ pub fn convert_to_dec_bignum(arg: Number) -> Result<i128, SecretError> {
             static ref RE: Regex = Regex::new(r"^(\-)?(\d+)(\.(\d+))?\Z").unwrap();
         }
         let parts = RE.captures(arg)?;
-        let result: i128 = parts.get(2)?
+        let mut result: i128 = parts.get(2)?
             .as_str()
             .trim()
             .parse::<i128>()
@@ -215,4 +215,14 @@ impl Div for Dec {
         }
     }
 
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn simple() {
+        assert_eq!(Dec { i: super::convert_to_dec_bignum(Number::Int(2)).unwrap() }.i, Dec::from(Number::Int(2)).unwrap().i);
+    }
 }
