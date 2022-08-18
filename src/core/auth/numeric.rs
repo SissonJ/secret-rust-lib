@@ -94,30 +94,6 @@ pub struct Dec {
 
 //TODO: JSONSerializable
 impl Dec {
-    /// Decimal represntation num_bigint::BigInt with basic aritmetic operations 
-    /// compatible with basic Rust numeric types. 
-    /// 
-    /// To implement: 
-    /// - [x] display
-    /// - [x] zero
-    /// - [x] one 
-    /// - [ ] int
-    /// - [ ] float
-    /// - [x] parity
-    /// - [x] whole
-    /// - [x] frac
-    /// - [ ] to_data
-    /// - [ ] equalities (less than, equal, greater than)
-    /// - [x] aritmetic (add, sub, mul, div, mod)
-    
-
-
-    /*
-    I am pretty sure the __operator__ methods in the python library override the 
-    normal methods to call the implemented methods, so you can perform normal operations
-    with the custom type. 
-
-    */
 
     pub fn from(arg: Number) -> Result<Dec, SecretError> {
         Ok(Dec { i: convert_to_dec_bignum(arg)?, })
@@ -215,15 +191,4 @@ impl Div for Dec {
         }
     }
 
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    
-    #[test]
-    fn simple() {
-        assert_eq!(Dec { i: super::convert_to_dec_bignum(Number::Int(2)).unwrap() }.i, Dec::from(Number::Int(2)).unwrap().i);
-        assert_eq!(Dec::from(Number::Int(5)).unwrap().i, (Dec::from(Number::Int(2)).unwrap() + Dec::from(Number::Int(3)).unwrap()).i);
-    }
 }
