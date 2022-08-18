@@ -24,14 +24,14 @@ pub fn convert_to_dec_bignum(arg: Number) -> Result<i128, SecretError> {
         Number::Str(str) => { 
             return match from_str(str) {
                 Some(BigInt) => Ok(BigInt),
-                None => Err(SecretError::Error("Not found".to_string()))
+                None => Err(SecretError::Error("Error: Invalid String Input".to_string()))
             }
         }, 
         Number::Float(float) => { 
             let float_string = float.to_string();
             return match from_str(&float_string) {
                 Some(BigInt) => Ok(BigInt),
-                None => Err(SecretError::Error("Not found".to_string()))
+                None => Err(SecretError::Error("Error: Invalid Float Input".to_string()))
             }
         } 
         Number::Int(int) => { return Ok(int as i128 * DEC_ONE) } 
@@ -87,12 +87,11 @@ fn chop_precision_and_round(d: i128) -> i128 {
 }
 
 
-#[derive(Default)] // Defaults i to 0 (https://docs.rs/num-bigint/latest/src/num_bigint/bigint.rs.html#132-137)
+#[derive(Default)] 
 pub struct Dec {
     i: i128, 
 }
 
-//TODO: JSONSerializable
 impl Dec {
 
     pub fn from(arg: Number) -> Result<Dec, SecretError> {
@@ -190,5 +189,4 @@ impl Div for Dec {
             i: self.div_dec(multiplier),
         }
     }
-
 }
