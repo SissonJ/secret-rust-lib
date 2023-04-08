@@ -27,12 +27,15 @@ impl WasmMsg {
                 contract,
                 msg,
                 sent_funds,
-            } => object!(
-                "sender": sender,
-                "contract": contract,
-                "msg": msg,
-                "sent_funds": sent_funds.to_string(),
-            ),
+            } => object!{
+                "type":"wasm/MsgExecuteContract",
+                "value":{
+                    "contract": contract,
+                    "msg": msg,
+                    "sender": sender,
+                    "sent_funds": sent_funds.to_string(),
+                }
+            },
             _ => object!(),
         }
     }
