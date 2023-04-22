@@ -1,17 +1,17 @@
 use color_eyre::eyre::Result;
 use hex;
 use json::{JsonValue, object};
-use crate::client::{lcdutils::LCDUtils};
+use crate::{client::{lcdutils::LCDUtils}, core::auth::{msg::Msg, coins::Coins, wasm::msgs::WasmMsg}};
 use super::base::BaseApi;
 
 #[derive(Clone)]
-pub struct WasmAPI {
-    utils: LCDUtils,
-    api: BaseApi,
+pub struct WasmAPI<'a> {
+    utils: LCDUtils<'a>,
+    api: &'a BaseApi,
 }
 
-impl WasmAPI {
-    pub fn new(api: BaseApi, utils: LCDUtils) -> WasmAPI{
+impl<'a> WasmAPI<'a> {
+    pub fn new(api: &'a BaseApi, utils: LCDUtils<'a>) -> WasmAPI<'a> {
         WasmAPI{
             utils,
             api,
@@ -50,6 +50,9 @@ impl WasmAPI {
         query: JsonValue, 
         height: Option<i32>,
         contract_hash: Option<String>,
+        input_nonce: Option<[u8; 32]>,
+        tx_encryption_key: Option<[u8; 32]>,
+        network_pubkey: Option<[u8; 32]>
     ) -> Result<JsonValue> {
         let query_str = json::stringify(query);
         let contract_code_hash = if let Some(hash) = contract_hash{
@@ -57,7 +60,7 @@ impl WasmAPI {
         }else{
             self.clone().contract_hash(contract_address.clone()).await?.to_string()
         };
-        let encrypted = self.utils.encrypt(contract_code_hash, query_str, None).await?;
+        let encrypted = self.utils.encrypt(contract_code_hash, query_str, input_nonce, tx_encryption_key, network_pubkey).await?;
         let nonce:[u8;32] = encrypted[0..32].try_into().unwrap();
         let encoded = hex::encode(base64::encode(encrypted));
         let query_path = if let Some(height) = height{
@@ -67,7 +70,48 @@ impl WasmAPI {
         };
         let query_res = self.api.get(query_path, None).await?;
         let encoded_result = base64::decode(query_res["smart"].to_string())?;
-        let decrypted = self.utils.decrypt(encoded_result, nonce, None).await?;
+        let decrypted = self.utils.decrypt(encoded_result, nonce, tx_encryption_key, network_pubkey).await?;
         Ok(json::parse(&String::from_utf8(base64::decode(decrypted)?)?)?)
+    }
+
+    pub fn encrypt_query(
+        &self, 
+        contract_address: String, 
+        query: JsonValue,
+        contract_hash: String,
+        input_nonce: [u8; 32],
+        network_pubkey: [u8; 32],
+     ) -> Result<(String, [u8; 32])> {
+        let query_str = json::stringify(query);
+        let encrypted = self.utils.encrypt_sync(contract_hash, query_str, input_nonce, network_pubkey)?;
+        let nonce:[u8;32] = encrypted.0[0..32].try_into().unwrap();
+        let encoded = hex::encode(base64::encode(encrypted.0));
+        Ok((format!("/wasm/contract/{}/query/{}?encoding=hex&height={}", contract_address, encoded, 0), encrypted.1))
+     }
+
+    pub async fn contract_execute_msg(
+        &self,
+        address: String,
+        contract_address: String,
+        handle_msg: JsonValue,
+        transfer_amount: Option<Coins>,
+        contract_code_hash: Option<String>,
+        nonce: Option<[u8; 32]>, 
+        tx_encryption_key: Option<[u8; 32]>,
+        network_pubkey: Option<[u8; 32]>
+    ) -> Result<Msg> {
+        let msg_str = handle_msg.dump();
+        let hash = match contract_code_hash {
+            None => self.contract_hash(contract_address.clone()).await?.dump(),
+            Some(hash) => hash,
+        };
+        let encrypted_msg = self.utils.encrypt(hash, msg_str, nonce, tx_encryption_key, network_pubkey).await?;
+        let encoded_msg = base64::encode(encrypted_msg);
+        Ok(Msg::WasmMsg(WasmMsg::MsgExecuteContract { 
+            sender: address, 
+            contract: contract_address, 
+            msg: encoded_msg, 
+            sent_funds: Coins::default(), 
+        }))
     }
 }
